@@ -1,6 +1,6 @@
 // Service worker: maakt de app installeerbaar en laat hem openen zonder verbinding.
 // Bij elke wijziging aan de app dit versienummer ophogen, zodat telefoons de nieuwe versie ophalen.
-const VERSIE = "u55-v1";
+const VERSIE = "u55-v2";
 const BESTANDEN = ["./", "index.html", "style.css", "config.js", "app.js", "manifest.webmanifest", "icons/logo.jpg", "icons/icon-192.png", "data/wedstrijden-voorbeeld.json"];
 
 self.addEventListener("install", e => { e.waitUntil(caches.open(VERSIE).then(c => c.addAll(BESTANDEN)).then(() => self.skipWaiting())); });

@@ -62,11 +62,22 @@ window.CLUB = {
       ["Nieuwsbrief", "Lees de laatste editie", "/index.php/nieuws/u55-nieuwsbrief", "mail"],
       ["Foto's", "Fotogalerij", "/index.php/info/foto-gallery", "foto"],
       ["Sponsoring", "Steun de club", "/index.php/sponsoring/sponsor-informatie-acties-sponsors", "ster"],
+      ["SponsorKliks", "Hoe werkt het?", "/index.php/sponsoring/sponsorkliks/hoe-werkt-sponsorkliks", "tas"],
       ["Veilig sporten", "Gedragscodes", "/index.php/info/gedragscodes-en-een-veilige-sportomgeving", "schild"],
       ["Vertrouwenspersoon", "Voor als iets niet goed voelt", "/index.php/info/vertrouwenspersoon", "praat"],
       ["Over ons", "De club sinds 1955", "/index.php/info/over-ons", "info"],
       ["Contact", "Bestuur en adres", "/index.php/contact", "tel"] ] }
   ],
+
+  // SponsorKliks: winkel online via deze link, de club krijgt commissie. In de genoemde periodes staat er een grote oproep bovenaan de Agenda.
+  sponsorkliks: {
+    url: "https://www.sponsorkliks.com/products/shops.php?club=3408",
+    uitleg: "https://www.uitsmijters55.nl/index.php/sponsoring/sponsorkliks/hoe-werkt-sponsorkliks",
+    tekst: "Shop je online via SponsorKliks, dan krijgt de club een deel van het aankoopbedrag. Jij betaalt niets extra.",
+    acties: [
+      { van: "11-01", tot: "12-31", titel: "Sint- en kerstinkopen? Steun de club!", tekst: "Bestel je cadeaus, en je staatslot voor Oud en Nieuw, via SponsorKliks. De club krijgt commissie, jij betaalt niets extra." }
+    ]
+  },
 
   privacy: "Alleen je voornaam als je je aanmeldt voor een activiteit of dienst. Die zien alleen de AC en het bestuur. We verwijderen hem uiterlijk een maand na de activiteit. Geen adressen, telefoonnummers of geboortedata.",
   privacyUrl: "https://www.uitsmijters55.nl/index.php/info/disclaimer-privacy-statement"

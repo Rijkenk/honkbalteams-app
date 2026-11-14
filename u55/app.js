@@ -155,15 +155,28 @@ const IC = {
   praat: '<path d="M4 5h16v11H9l-5 4z"/>',
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
   tel: '<path d="M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+  tas: '<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
   ster: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'
 };
 const tegel = ([b, s, pad, ic, tk]) => `<a class="tile ${tk || ""}" href="${esc(C.site + pad)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[ic] || ""}</svg><b>${esc(b)}</b><span>${esc(s)}</span></a>`;
+function sponsorBlok(groot) {
+  const sk = C.sponsorkliks; if (!sk) return "";
+  const md = vandaagIso().slice(5);
+  const actie = (sk.acties || []).find(x => x.van <= md && md <= x.tot);
+  if (groot && !actie) return "";
+  const titel = actie ? actie.titel : "Steun de club met SponsorKliks";
+  return `<section class="sponsor${actie ? " actie" : ""}" aria-label="SponsorKliks">
+    <div class="kicker">SponsorKliks</div><h3>${esc(titel)}</h3><p>${esc(actie ? actie.tekst : sk.tekst)}</p>
+    <div class="row"><a class="btn primary" href="${esc(sk.url)}" target="_blank" rel="noopener">Shoppen via SponsorKliks</a>${sk.uitleg ? `<a class="btn" href="${esc(sk.uitleg)}" target="_blank" rel="noopener">Hoe werkt het?</a>` : ""}</div>
+  </section>`;
+}
 const geenKoppeling = () => !C.api ? '<p class="status">Aanmelden en het overzicht werken zodra de app gekoppeld is aan de opslag van de club.</p>' : "";
 
 const views = {
   agenda: () => {
     const lijst = activiteiten();
     return `
+    ${sponsorBlok(true)}
     <div class="section-head"><h2>Agenda</h2><span class="small">${esc(C.agendaTitel)}</span></div>
     ${geenKoppeling()}
     <div class="list">${lijst.map(a => `
@@ -277,6 +290,7 @@ const views = {
   },
   club: () => `
     <h2>Club</h2>
+    ${sponsorBlok(false)}
     ${C.clubBlokken.map(g => `<section class="tilegroup"><h3>${esc(g.kop)}</h3><div class="tiles">${g.items.map(tegel).join("")}</div></section>`).join("")}
     <div class="tilefoot">Alle blokken openen de clubsite</div>
     <article class="news"><div class="kicker">Privacy</div><h3>Wat bewaart deze app?</h3><p>${esc(C.privacy)}</p>${C.privacyUrl ? `<a class="newslink" href="${esc(C.privacyUrl)}" target="_blank" rel="noopener">Privacyverklaring van de club</a>` : ""}</article>
