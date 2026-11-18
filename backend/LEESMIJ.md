@@ -14,6 +14,10 @@ Dit hoef je maar één keer in te stellen, en het kost niets.
 5. Onderin verschijnt het **uitvoeringslogboek** met de **beheercode** voor AC en bestuur. Bewaar die goed.
    Wijzigen kan later bij **Projectinstellingen (tandwiel) > Scripteigenschappen > BEHEERCODE**.
 
+6. In hetzelfde logboek staat of de **Google Agenda** gekoppeld is ("... komende afspraken gevonden").
+   Staat er "Let op", dan kan dit Google-account de agenda niet zien: deel de agenda met dit account
+   (**Alle afspraakdetails bekijken**) en voer setup opnieuw uit.
+
 `setup` maakt de tabbladen Aanmeldingen, Activiteiten, Verzoeken en Taken aan en zet een nachtelijke opruiming aan
 die aanmeldingen een maand na de activiteit verwijdert.
 
@@ -26,6 +30,17 @@ die aanmeldingen een maand na de activiteit verwijdert.
 5. Die URL komt in `u55/config.js` bij `api`. Daarna werken aanmelden en het overzicht.
 
 Pas je later `Code.gs` aan? Kies dan **Implementeren > Implementaties beheren > bewerken > Nieuwe versie**, anders blijft de oude versie actief.
+
+## Google Agenda
+
+De app toont automatisch de komende afspraken uit de Google Agenda **U55 Activiteiten** (agenda-ID staat in `Code.gs` bij `CLUB.agenda`).
+Nieuwe of gewijzigde afspraken staan binnen een kwartier in de app. In de beschrijving van een afspraak kun je zetten:
+
+- `#aanmelden`: leden kunnen zich in de app aanmelden (alleen voornaam en aantal).
+- `#kaarten https://...`: knop "Kaarten kopen" met die link (bijvoorbeeld ClubCollect).
+- `#voor Jeugd`: voor wie de activiteit is (anders "Iedereen").
+
+Staat een activiteit zowel in de vaste jaaragenda (`u55/config.js`) als in de Google Agenda op dezelfde dag, dan toont de app alleen die uit de Google Agenda.
 
 ## Wie ziet wat?
 

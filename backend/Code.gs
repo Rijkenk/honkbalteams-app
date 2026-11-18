@@ -4,6 +4,7 @@
  *
  * Wat het doet:
  *  - bewaart aanmeldingen (alleen voornaam en aantal), activiteiten, vrijwilligersverzoeken en taken in tabbladen van deze Sheet;
+ *  - leest de Google Agenda van de club (Scripteigenschap AGENDA_ID) en zet die afspraken in de app;
  *  - haalt het clubnieuws (RSS van de clubsite) en de wedstrijden (openbare KNBSB/FOYS-gegevens) op voor de app;
  *  - ruimt elke nacht aanmeldingen op die meer dan een maand na de activiteit zijn.
  */
@@ -14,7 +15,8 @@ const CLUB = {
   site: "https://www.uitsmijters55.nl",
   foysBasis: "https://api.foys.io/competition/public-api/v1",
   foysFederatie: "d82c5610-66b2-4939-9897-8dac34becfc5",
-  foysClub: "0b84a685-dbef-4a60-b965-49b2a7df7f6d"
+  foysClub: "0b84a685-dbef-4a60-b965-49b2a7df7f6d",
+  agenda: "e03cmdgh8rq19k1b24se3kn6ss@group.calendar.google.com" // Google Agenda "U55 Activiteiten" (Scripteigenschap AGENDA_ID gaat voor)
 };
 const BEWAARDAGEN = 31; // aanmeldingen worden zoveel dagen na de activiteit verwijderd
 
@@ -45,6 +47,12 @@ function setup() {
     Logger.log("Beheercode voor AC en bestuur: " + code + " (te wijzigen bij Projectinstellingen > Scripteigenschappen)");
   } else {
     Logger.log("Beheercode staat al ingesteld (zie Projectinstellingen > Scripteigenschappen).");
+  }
+  try {
+    const n = haalAgenda().items.length;
+    Logger.log("Google Agenda gekoppeld: " + n + " komende afspraken gevonden.");
+  } catch (err) {
+    Logger.log("Let op: de Google Agenda is niet bereikbaar voor dit account. Deel de agenda met dit Google-account (Alle afspraakdetails bekijken) en voer setup opnieuw uit.");
   }
 }
 
@@ -89,7 +97,51 @@ function publiekeData() {
     id: r.id, titel: r.titel, datum: r.datum,
     slots: jsonOf(r.slots, []).map((taak, j) => ({ taak: taak, bezet: !!bezet[r.id + "-" + j] }))
   }));
-  return { ok: true, activiteiten: activiteiten, verzoeken: verzoeken };
+  let agenda = [];
+  try { agenda = gecachet("agenda", 900, haalAgenda).items || []; } catch (err) { console.error(err); }
+  return { ok: true, activiteiten: activiteiten, verzoeken: verzoeken, agenda: agenda };
+}
+
+// ---------------- Google Agenda van de club ----------------
+// Agenda-ID staat in CLUB.agenda; met Scripteigenschap AGENDA_ID kun je een andere kiezen (Instellingen > de agenda > Agenda integreren).
+// Het Google-account dat dit script draait moet de agenda kunnen zien ("Alle afspraakdetails bekijken").
+// In de beschrijving van een afspraak kun je zetten:
+//   #aanmelden            -> aanmeldknop in de app
+//   #kaarten https://...  -> knop "Kaarten kopen" met die link
+//   #voor Jeugd           -> doelgroep (standaard "Iedereen")
+function haalAgenda() {
+  const id = PropertiesService.getScriptProperties().getProperty("AGENDA_ID") || CLUB.agenda;
+  if (!id) return { ok: true, items: [] };
+  const cal = CalendarApp.getCalendarById(id.trim());
+  if (!cal) throw fout("agenda"); // onbekend of niet gedeeld met dit account
+  const nu = new Date();
+  const start = new Date(nu.getFullYear(), nu.getMonth(), nu.getDate());
+  const eind = new Date(start.getTime() + 400 * 864e5);
+  const tz = "Europe/Amsterdam";
+  const fmt = (d, f) => Utilities.formatDate(d, tz, f);
+  const items = cal.getEvents(start, eind).slice(0, 150).map(ev => {
+    const heleDag = ev.isAllDayEvent();
+    const begin = heleDag ? ev.getAllDayStartDate() : ev.getStartTime();
+    let eindD = heleDag ? new Date(ev.getAllDayEndDate().getTime() - 864e5) : ev.getEndTime();
+    const datum = fmt(begin, "yyyy-MM-dd"), totDatum = fmt(eindD, "yyyy-MM-dd");
+    let tekstRuw = String(ev.getDescription() || "").replace(/<br\s*\/?>/gi, "\n").replace(/<a [^>]*href="([^"]+)"[^>]*>[^<]*<\/a>/gi, "$1").replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+    const kaarten = (tekstRuw.match(/#kaarten\s+(https:\/\/\S+)/i) || [])[1] || "";
+    const voor = ((tekstRuw.match(/#voor\s+([^\n#]+)/i) || [])[1] || "").trim();
+    const aanmelden = /#aanmelden\b/i.test(tekstRuw);
+    tekstRuw = tekstRuw.replace(/#kaarten\s+\S+/ig, "").replace(/#voor\s+[^\n#]+/ig, "").replace(/#aanmelden\b/ig, "").replace(/\s+/g, " ").trim();
+    const tags = [];
+    if (totDatum > datum) tags.push(fmt(begin, "d") + " t/m " + fmt(eindD, "d MMM").replace(".", ""));
+    else if (!heleDag) tags.push(fmt(begin, "HH:mm") + "-" + fmt(eindD, "HH:mm"));
+    const waar = tekst(ev.getLocation(), 80);
+    if (waar) tags.push(waar);
+    const sleutel = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, ev.getId() + "|" + datum);
+    const gid = "g-" + sleutel.slice(0, 6).map(b => ((b + 256) % 256).toString(16).padStart(2, "0")).join("");
+    const o = { id: gid, titel: tekst(ev.getTitle(), 100), datum: datum, tekst: tekst(tekstRuw, 400), wie: tekst(voor, 40) || "Iedereen", tags: tags, aanmelden: aanmelden && !kaarten };
+    if (kaarten) o.kaarten = kaarten;
+    return o;
+  }).filter(o => o.titel);
+  return { ok: true, items: items };
 }
 
 function mijnAanmeldingen(b) {

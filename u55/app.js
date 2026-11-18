@@ -20,6 +20,7 @@ if (!toestel) { toestel = (crypto.randomUUID ? crypto.randomUUID() : String(Math
 let mijn = lees("mijn", { activiteiten: {}, diensten: {} });
 let laatsteNaam = lees("naam", "");
 let extraActiviteiten = lees("cache-activiteiten", []);
+let clubAgenda = lees("cache-agenda", []); // afspraken uit de Google Agenda van de club
 let verzoeken = lees("cache-verzoeken", []);
 let nieuws = lees("cache-nieuws", []);
 let wedstrijden = lees("cache-wedstrijden", null);
@@ -63,7 +64,17 @@ function activiteiten() {
     if (j && j !== new Date().getFullYear() && j !== 2027) a.tags.unshift(String(j));
     return a;
   });
-  return [...C.agenda, ...eigen].filter(a => !a.datum || a.datum >= vandaag).sort((a, b) => String(a.datum).localeCompare(String(b.datum)));
+  const uitAgenda = clubAgenda.map(v => {
+    const [j, mm, dd] = String(v.datum).split("-").map(Number);
+    const a = { id: v.id, datum: v.datum, d: String(dd || ""), m: MAANDEN[mm - 1] || "", titel: v.titel, tekst: v.tekst || "", wie: v.wie || "Iedereen", tags: (v.tags || []).slice(), aanmelden: !!v.aanmelden && !v.kaarten, eigen: true };
+    if (v.kaarten) a.kaarten = v.kaarten;
+    if (j && j !== new Date().getFullYear() && j !== 2027) a.tags.unshift(String(j));
+    return a;
+  });
+  // Staat een vaste activiteit ook in de Google Agenda (zelfde datum, gedeeld woord in de titel), dan telt de Google Agenda.
+  const woorden = t => String(t).toLowerCase().split(/[^a-z0-9à-ÿ]+/).filter(w => w.length >= 4);
+  const dubbel = a => a.datum && uitAgenda.some(g => g.datum === a.datum && woorden(g.titel).some(w => woorden(a.titel).includes(w)));
+  return [...C.agenda.filter(a => !dubbel(a)), ...eigen, ...uitAgenda].filter(a => !a.datum || a.datum >= vandaag).sort((a, b) => String(a.datum).localeCompare(String(b.datum)));
 }
 
 // ---------- Wedstrijden ----------
@@ -418,6 +429,7 @@ async function laadData() {
   try {
     const j = await api({ a: "data" });
     extraActiviteiten = j.activiteiten || []; verzoeken = j.verzoeken || [];
+    clubAgenda = j.agenda || []; schrijf("cache-agenda", clubAgenda);
     schrijf("cache-activiteiten", extraActiviteiten); schrijf("cache-verzoeken", verzoeken);
     status.data = "klaar";
   } catch (e) { status.data = "fout"; }
