@@ -193,6 +193,7 @@ const views = {
         </div>
       </article>`).join("") || '<p class="leeg">Er staan nog geen activiteiten in de agenda.</p>'}
     </div>
+    ${(C.agendaDoorlopend || []).length ? `<article class="news"><div class="kicker">Doorlopend tijdens het seizoen</div><ul style="margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:14px">${C.agendaDoorlopend.map(x => `<li>${esc(x)}</li>`).join("")}</ul></article>` : ""}
     <div id="form"></div>`;
   },
   wedstrijden: () => {
