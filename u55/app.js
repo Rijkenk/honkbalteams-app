@@ -186,8 +186,8 @@ const geenKoppeling = () => !C.api ? '<p class="status">Aanmelden en het overzic
 
 // ---------- App installeren (alleen zichtbaar in de browser, niet als de app al op het beginscherm staat) ----------
 let installVraag = null;
-window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installVraag = e; herteken("club"); });
-window.addEventListener("appinstalled", () => { installVraag = null; herteken("club"); });
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installVraag = e; herteken("agenda", "club"); });
+window.addEventListener("appinstalled", () => { installVraag = null; herteken("agenda", "club"); });
 const alsApp = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 function installBlok() {
   if (alsApp()) return "";
@@ -206,6 +206,7 @@ const views = {
   agenda: () => {
     const lijst = activiteiten();
     return `
+    ${installBlok()}
     ${sponsorBlok(true)}
     <div class="section-head"><h2>Agenda</h2><span class="small">${esc(C.agendaTitel)}</span></div>
     ${geenKoppeling()}
@@ -408,7 +409,7 @@ document.addEventListener("click", async e => {
   else if (t.dataset.dienstweg) afmelden("dienst", t.dataset.dienstweg, "helpen");
   else if (t.dataset.dienst) dienstFormulier(t);
   else if (t.id === "inloggen") show("ac");
-  else if (t.id === "installeren" && installVraag) { installVraag.prompt(); try { await installVraag.userChoice; } catch (err) {} installVraag = null; herteken("club"); }
+  else if (t.id === "installeren" && installVraag) { installVraag.prompt(); try { await installVraag.userChoice; } catch (err) {} installVraag = null; herteken(huidigeTab); }
   else if (t.id === "uitloggen") { beheercode = ""; beheer = null; wis("beheer"); document.querySelector('nav.tabs button[data-tab="ac"]').hidden = true; show("club"); toast("Uitgelogd"); }
   else if (t.dataset.actweg || t.dataset.taakweg || t.dataset.verzoekweg) {
     const [soort, id] = t.dataset.actweg ? ["a", t.dataset.actweg] : t.dataset.taakweg ? ["t", t.dataset.taakweg] : ["v", t.dataset.verzoekweg];
