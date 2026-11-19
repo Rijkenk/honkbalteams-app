@@ -64,7 +64,8 @@ function activiteiten() {
     if (j && j !== new Date().getFullYear() && j !== 2027) a.tags.unshift(String(j));
     return a;
   });
-  const uitAgenda = clubAgenda.map(v => {
+  const gekoppeld = new Set(extraActiviteiten.map(v => v.agenda).filter(Boolean)); // via de app geplaatst en ook in Google Agenda gezet
+  const uitAgenda = clubAgenda.filter(v => !gekoppeld.has(v.id)).map(v => {
     const [j, mm, dd] = String(v.datum).split("-").map(Number);
     const a = { id: v.id, datum: v.datum, d: String(dd || ""), m: MAANDEN[mm - 1] || "", titel: v.titel, tekst: v.tekst || "", wie: v.wie || "Iedereen", tags: (v.tags || []).slice(), aanmelden: !!v.aanmelden && !v.kaarten, eigen: true };
     if (v.kaarten) a.kaarten = v.kaarten;
@@ -146,7 +147,7 @@ async function laadBeheer(stil) {
   }
 }
 async function beheerActie(actie, gegevens, gelukt) {
-  try { await api(null, { a: "beheer", code: beheercode, actie, ...gegevens }); if (gelukt) toast(gelukt); await Promise.all([laadBeheer(true), laadData()]); }
+  try { const j = await api(null, { a: "beheer", code: beheercode, actie, ...gegevens }); if (gelukt) toast(actie === "activiteitNieuw" ? (j.agenda ? "Activiteit geplaatst, ook in de Google Agenda" : "Activiteit geplaatst (alleen in de app)") : gelukt); await Promise.all([laadBeheer(true), laadData()]); }
   catch (e) { toast(e.code === "code" ? "De beheercode klopt niet" : "Dat lukt nu niet, probeer het opnieuw", true); herteken("ac"); }
 }
 

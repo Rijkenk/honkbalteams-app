@@ -22,7 +22,7 @@ const BEWAARDAGEN = 31; // aanmeldingen worden zoveel dagen na de activiteit ver
 
 const TABBLADEN = {
   Aanmeldingen: ["id", "tijd", "toestel", "soort", "ref", "naam", "aantal", "datum"],
-  Activiteiten: ["id", "aangemaakt", "titel", "datum", "wie", "tekst", "waar", "aanmelden", "kaarten"],
+  Activiteiten: ["id", "aangemaakt", "titel", "datum", "wie", "tekst", "waar", "aanmelden", "kaarten", "agendaEvent", "agendaGid"],
   Verzoeken: ["id", "aangemaakt", "titel", "datum", "slots"],
   Taken: ["id", "aangemaakt", "groep", "titel", "wie", "deadline", "klaar"]
 };
@@ -91,7 +91,7 @@ function publiekeData() {
   const bezet = {};
   rijen("Aanmeldingen").forEach(r => { if (r.soort === "dienst") bezet[r.ref] = true; });
   const activiteiten = rijen("Activiteiten").filter(r => r.datum >= vandaag).map(r => ({
-    id: r.id, titel: r.titel, datum: r.datum, wie: r.wie, tekst: r.tekst, waar: r.waar, aanmelden: r.aanmelden === "ja", kaarten: r.kaarten || ""
+    id: r.id, titel: r.titel, datum: r.datum, wie: r.wie, tekst: r.tekst, waar: r.waar, aanmelden: r.aanmelden === "ja", kaarten: r.kaarten || "", agenda: r.agendaGid || ""
   }));
   const verzoeken = rijen("Verzoeken").filter(r => !r.datum || r.datum >= vandaag).sort((x, y) => String(x.datum).localeCompare(String(y.datum))).map(r => ({
     id: r.id, titel: r.titel, datum: r.datum,
@@ -103,6 +103,30 @@ function publiekeData() {
 }
 
 // ---------------- Google Agenda van de club ----------------
+function agendaGid(eventId, datum) {
+  const sleutel = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, eventId + "|" + datum);
+  return "g-" + sleutel.slice(0, 6).map(b => ((b + 256) % 256).toString(16).padStart(2, "0")).join("");
+}
+function clubAgenda() {
+  const id = PropertiesService.getScriptProperties().getProperty("AGENDA_ID") || CLUB.agenda;
+  return id ? CalendarApp.getCalendarById(id.trim()) : null;
+}
+// Zet een activiteit uit de app ook in de Google Agenda. Lukt dat niet (geen schrijfrechten), dan blijft hij alleen in de app.
+function naarAgenda(a) {
+  try {
+    const cal = clubAgenda(); if (!cal) return null;
+    const [j, m, d] = a.datum.split("-").map(Number);
+    const regels = [a.tekst, a.wie && a.wie !== "Iedereen" ? "#voor " + a.wie : "", a.kaarten ? "#kaarten " + a.kaarten : (a.aanmelden === "ja" ? "#aanmelden" : ""), "(Geplaatst via de clubapp)"].filter(Boolean);
+    const ev = cal.createAllDayEvent(a.titel, new Date(j, m - 1, d), { description: regels.join("\n"), location: a.waar || "" });
+    CacheService.getScriptCache().remove("agenda");
+    return { agendaEvent: ev.getId(), agendaGid: agendaGid(ev.getId(), a.datum) };
+  } catch (err) { console.error("Agenda schrijven lukt niet: " + err); return null; }
+}
+function uitAgenda(eventId) {
+  if (!eventId) return;
+  try { const cal = clubAgenda(); const ev = cal && cal.getEventById(eventId); if (ev) ev.deleteEvent(); CacheService.getScriptCache().remove("agenda"); }
+  catch (err) { console.error("Agenda verwijderen lukt niet: " + err); }
+}
 // Agenda-ID staat in CLUB.agenda; met Scripteigenschap AGENDA_ID kun je een andere kiezen (Instellingen > de agenda > Agenda integreren).
 // Het Google-account dat dit script draait moet de agenda kunnen zien ("Alle afspraakdetails bekijken").
 // In de beschrijving van een afspraak kun je zetten:
@@ -110,9 +134,7 @@ function publiekeData() {
 //   #kaarten https://...  -> knop "Kaarten kopen" met die link
 //   #voor Jeugd           -> doelgroep (standaard "Iedereen")
 function haalAgenda() {
-  const id = PropertiesService.getScriptProperties().getProperty("AGENDA_ID") || CLUB.agenda;
-  if (!id) return { ok: true, items: [] };
-  const cal = CalendarApp.getCalendarById(id.trim());
+  const cal = clubAgenda();
   if (!cal) throw fout("agenda"); // onbekend of niet gedeeld met dit account
   const nu = new Date();
   const start = new Date(nu.getFullYear(), nu.getMonth(), nu.getDate());
@@ -135,8 +157,7 @@ function haalAgenda() {
     else if (!heleDag) tags.push(fmt(begin, "HH:mm") + "-" + fmt(eindD, "HH:mm"));
     const waar = tekst(ev.getLocation(), 80);
     if (waar) tags.push(waar);
-    const sleutel = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, ev.getId() + "|" + datum);
-    const gid = "g-" + sleutel.slice(0, 6).map(b => ((b + 256) % 256).toString(16).padStart(2, "0")).join("");
+    const gid = agendaGid(ev.getId(), datum);
     const o = { id: gid, titel: tekst(ev.getTitle(), 100), datum: datum, tekst: tekst(tekstRuw, 400), wie: tekst(voor, 40) || "Iedereen", tags: tags, aanmelden: aanmelden && !kaarten };
     if (kaarten) o.kaarten = kaarten;
     return o;
@@ -205,7 +226,7 @@ function beheer(b) {
     });
   }
   return metSlot(() => {
-    const id = tekst(b.id, 60);
+    const id = tekst(b.id, 60), extra = {};
     if (actie === "taakNieuw") {
       voegToe("Taken", { id: Utilities.getUuid(), aangemaakt: new Date().toISOString(), groep: b.groep === "bestuur" ? "bestuur" : "ac", titel: tekst(b.titel, 120), wie: tekst(b.wie, 40), deadline: isoOfLeeg(b.deadline), klaar: "nee" });
     } else if (actie === "taakKlaar") {
@@ -215,10 +236,16 @@ function beheer(b) {
     } else if (actie === "activiteitNieuw") {
       const datum = isoOfLeeg(b.datum); if (!datum || !tekst(b.titel, 80)) throw fout("invoer");
       const kaarten = /^https:\/\//.test(b.kaarten || "") ? tekst(b.kaarten, 300) : "";
-      voegToe("Activiteiten", { id: "a" + Utilities.getUuid().slice(0, 8), aangemaakt: new Date().toISOString(), titel: tekst(b.titel, 80), datum: datum,
+      const a = { id: "a" + Utilities.getUuid().slice(0, 8), aangemaakt: new Date().toISOString(), titel: tekst(b.titel, 80), datum: datum,
         wie: ["Iedereen", "Leden", "Jeugd", "Vrijwilligers"].indexOf(b.wie) >= 0 ? b.wie : "Iedereen", tekst: tekst(b.tekst, 300), waar: tekst(b.waar, 40),
-        aanmelden: b.aanmelden && !kaarten ? "ja" : "nee", kaarten: kaarten });
+        aanmelden: b.aanmelden && !kaarten ? "ja" : "nee", kaarten: kaarten };
+      const inAgenda = naarAgenda(a);
+      if (inAgenda) Object.assign(a, inAgenda);
+      voegToe("Activiteiten", a);
+      extra.agenda = !!inAgenda;
     } else if (actie === "activiteitWeg") {
+      const r = rijen("Activiteiten").find(x => x.id === id);
+      if (r) uitAgenda(r.agendaEvent);
       verwijderRijen("Activiteiten", r => r.id === id);
       verwijderRijen("Aanmeldingen", r => r.soort === "activiteit" && r.ref === id);
     } else if (actie === "verzoekNieuw") {
@@ -231,7 +258,7 @@ function beheer(b) {
     } else {
       throw fout("onbekend");
     }
-    return { ok: true };
+    return Object.assign({ ok: true }, extra);
   });
 }
 

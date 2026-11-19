@@ -40,6 +40,10 @@ Nieuwe of gewijzigde afspraken staan binnen een kwartier in de app. In de beschr
 - `#kaarten https://...`: knop "Kaarten kopen" met die link (bijvoorbeeld ClubCollect).
 - `#voor Jeugd`: voor wie de activiteit is (anders "Iedereen").
 
+**Andersom:** een activiteit die AC of bestuur in de app toevoegt (Overzicht), zet het script ook in de Google Agenda,
+als het Google-account van het script daar **Wijzigingen aanbrengen in afspraken** mag. Verwijder je hem in de app, dan verdwijnt hij ook uit de agenda.
+Zonder dat recht komt de activiteit alleen in de app.
+
 Staat een activiteit zowel in de vaste jaaragenda (`u55/config.js`) als in de Google Agenda op dezelfde dag, dan toont de app alleen die uit de Google Agenda.
 
 ## Wie ziet wat?
