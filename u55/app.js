@@ -345,6 +345,32 @@ function show(tab, behoudScroll) {
   window.scrollTo(0, behoudScroll ? y : 0);
 }
 
+// ---------- Geen zoomen; vegen naar het vorige of volgende tabblad ----------
+["gesturestart", "gesturechange"].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+document.addEventListener("touchmove", e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+let laatsteTik = 0;
+document.addEventListener("touchend", e => { const nu = Date.now(); if (nu - laatsteTik < 300 && !e.target.closest("input, textarea, select")) e.preventDefault(); laatsteTik = nu; }, { passive: false });
+(() => {
+  let x0 = null, y0 = 0, t0 = 0;
+  main.addEventListener("touchstart", e => {
+    x0 = null;
+    if (e.touches.length !== 1) return;
+    const doel = e.target;
+    if (doel.closest("input, textarea, select, form, .table-wrap, [data-geenveeg]")) return; // daar niet vegen
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, { passive: true });
+  main.addEventListener("touchend", e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < 1.8 * Math.abs(dy) || Date.now() - t0 > 700) return;
+    const tabs = [...document.querySelectorAll("nav.tabs button[data-tab]")].filter(b => !b.hidden).map(b => b.dataset.tab);
+    const i = tabs.indexOf(huidigeTab), j = i + (dx < 0 ? 1 : -1);
+    if (i < 0 || j < 0 || j >= tabs.length) return;
+    show(tabs[j]);
+    main.querySelector(".view")?.classList.add(dx < 0 ? "veeg-links" : "veeg-rechts");
+  }, { passive: true });
+})();
+
 // ---------- Formulieren voor leden ----------
 function dienstFormulier(knop) {
   const key = knop.dataset.dienst;
