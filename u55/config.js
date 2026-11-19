@@ -26,7 +26,7 @@ window.CLUB = {
 
   // Vaste jaaragenda (concept 2027). "datum" bepaalt de volgorde en wanneer aanmeldingen worden opgeruimd (1 maand erna).
   // d en m zijn wat er in het datumblokje staat. Activiteiten die AC en bestuur in de app toevoegen komen hier automatisch bij.
-  agendaTitel: "Jaaragenda 2027, goedgekeurd door het bestuur",
+  agendaTitel: "Jaaragenda 2027",
   agendaDoorlopend: ["Hamburgers en hotdogs bij de thuiswedstrijden van Heren 1, samen met de vrijwilligers", "Pupil van de week bij de thuiswedstrijden (proef)"],
   agenda: [
     { id: "nieuwjaar", datum: "2027-01-09", d: "9", m: "jan", titel: "Nieuwjaarsborrel met loterij", tekst: "Proosten op 2027 met loten, sjoelen en muziekbingo.", wie: "Alle leden", tags: ["Kantine"], aanmelden: true },
