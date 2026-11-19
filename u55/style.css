@@ -1,3 +1,4 @@
+[hidden] { display: none !important; }
 /* Layout: één telefoonkolom met vaste tabbalk onderin; op desktop gecentreerd als app-scherm */
 :root {
   --bg: #f1f2f7;

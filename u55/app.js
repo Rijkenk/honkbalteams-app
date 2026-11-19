@@ -248,6 +248,13 @@ const views = {
     ${status.nieuws === "laden" && !nieuws.length ? '<p class="status">Nieuws laden...</p>' : ""}
     <div class="list">${nieuws.map(n => `<article class="news">${n.img ? `<img class="newsimg" src="${esc(n.img)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<div class="kicker">Clubnieuws${n.datum ? ` · ${esc(new Date(n.datum).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" }))}` : ""}</div><h3>${esc(n.titel)}</h3><p>${esc(n.tekst)}</p>${n.url ? `<a class="newslink" href="${esc(n.url)}" target="_blank" rel="noopener">Lees verder op de clubsite</a>` : ""}</article>`).join("") || (status.nieuws !== "laden" ? `<p class="leeg">Nog geen nieuws dit jaar. Kijk ook op <a href="${esc(C.site)}" target="_blank" rel="noopener">de clubsite</a>.</p>` : "")}</div>`,
   ac: () => {
+    if (!beheercode) return `
+    <div class="section-head"><h2>Overzicht</h2><span class="small">Alleen voor AC en bestuur</span></div>
+    <article class="news"><h3>Inloggen</h3><p>Vul de beheercode in die je van de AC of het bestuur hebt gekregen.</p>
+      <form id="loginform" class="row" autocomplete="off">
+        <input id="logincode" type="password" required maxlength="60" placeholder="Beheercode" aria-label="Beheercode" style="flex:1;min-width:10em">
+        <button class="primary" type="submit">Inloggen</button>
+      </form></article>`;
     if (!beheer) return `<h2>Overzicht</h2><p class="status">Overzicht laden...</p>`;
     const perAct = {}, perDienst = {}, vrijwilligers = new Set();
     beheer.aanmeldingen.forEach(r => {
@@ -306,11 +313,10 @@ const views = {
     ${C.clubBlokken.map(g => `<section class="tilegroup"><h3>${esc(g.kop)}</h3><div class="tiles">${g.items.map(tegel).join("")}</div></section>`).join("")}
     <div class="tilefoot">Alle blokken openen de clubsite</div>
     <article class="news"><div class="kicker">Privacy</div><h3>Wat bewaart deze app?</h3><p>${esc(C.privacy)}</p>${C.privacyUrl ? `<a class="newslink" href="${esc(C.privacyUrl)}" target="_blank" rel="noopener">Privacyverklaring van de club</a>` : ""}</article>
-    ${C.api && !beheer ? '<div class="login"><button id="inloggen">Inloggen voor AC en bestuur</button></div>' : ""}`
+    ${C.api && !beheercode ? '<div class="login"><button id="inloggen">Inloggen voor AC en bestuur</button></div>' : ""}`
 };
 
 function show(tab, behoudScroll) {
-  if (tab === "ac" && !beheercode) tab = "club";
   huidigeTab = tab;
   document.querySelectorAll("nav.tabs button").forEach(b => b.dataset.tab === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
   const y = window.scrollY;
@@ -381,11 +387,7 @@ document.addEventListener("click", async e => {
   else if (t.dataset.afmelden) afmelden("activiteit", t.dataset.afmelden, "agenda");
   else if (t.dataset.dienstweg) afmelden("dienst", t.dataset.dienstweg, "helpen");
   else if (t.dataset.dienst) dienstFormulier(t);
-  else if (t.id === "inloggen") {
-    const code = (prompt("Beheercode voor AC en bestuur") || "").trim(); if (!code) return;
-    try { await api(null, { a: "beheer", code, actie: "check" }); beheercode = code; schrijf("beheer", code); toast("Ingelogd"); await laadBeheer(); show("ac"); }
-    catch (err) { toast(err.code === "code" ? "Die code klopt niet" : err.code === "geblokkeerd" ? "Te veel pogingen, probeer het over 10 minuten opnieuw" : "Inloggen lukt nu niet", true); }
-  }
+  else if (t.id === "inloggen") show("ac");
   else if (t.id === "uitloggen") { beheercode = ""; beheer = null; wis("beheer"); document.querySelector('nav.tabs button[data-tab="ac"]').hidden = true; show("club"); toast("Uitgelogd"); }
   else if (t.dataset.actweg || t.dataset.taakweg || t.dataset.verzoekweg) {
     const [soort, id] = t.dataset.actweg ? ["a", t.dataset.actweg] : t.dataset.taakweg ? ["t", t.dataset.taakweg] : ["v", t.dataset.verzoekweg];
@@ -398,7 +400,15 @@ document.addEventListener("change", e => {
   const id = e.target.dataset?.taakklaar; if (!id) return;
   beheerActie("taakKlaar", { id, klaar: e.target.checked });
 });
-document.addEventListener("submit", e => {
+document.addEventListener("submit", async e => {
+  if (e.target.id === "loginform") {
+    e.preventDefault();
+    const f = e.target, code = f.querySelector("#logincode").value.trim(); if (!code) return;
+    const knop = f.querySelector("button[type=submit]"); knop.disabled = true; knop.textContent = "Bezig...";
+    try { await api(null, { a: "beheer", code, actie: "check" }); beheercode = code; schrijf("beheer", code); document.activeElement?.blur?.(); toast("Ingelogd"); show("ac"); await laadBeheer(); }
+    catch (err) { knop.disabled = false; knop.textContent = "Inloggen"; toast(err.code === "code" ? "Die code klopt niet" : err.code === "geblokkeerd" ? "Te veel pogingen, probeer het over 10 minuten opnieuw" : "Inloggen lukt nu niet (" + (err.code || err.message || "geen verbinding") + ")", true); }
+    return;
+  }
   const f = e.target;
   if (f.classList.contains("takenform")) {
     e.preventDefault();
