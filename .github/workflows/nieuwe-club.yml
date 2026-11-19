@@ -1,0 +1,89 @@
+name: Nieuwe club
+
+# De knop om een andere honk- of softbalclub een eigen app te geven.
+# GitHub > Actions > Nieuwe club > Run workflow, formulier invullen en op de groene knop drukken.
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "Korte code voor de club (kleine letters, wordt het adres: .../code/), bijv. pioniers"
+        required: true
+      naam:
+        description: "Naam van de club zoals leden hem kennen, bijv. Pioniers"
+        required: true
+      plaats:
+        description: "Plaats, bijv. Hoofddorp"
+        required: false
+      site:
+        description: "Website van de club, bijv. https://www.pioniers.nl"
+        required: false
+      logo:
+        description: "Link naar het logo (op de clubsite: rechtsklik op het logo > Afbeeldingsadres kopiëren)"
+        required: true
+      hoofdkleur:
+        description: "Hoofdkleur, donker (kopbalk), bijv. #12104a"
+        required: false
+        default: "#12104a"
+      accentkleur:
+        description: "Accentkleur (knoppen en lijnen), bijv. #d8342e"
+        required: false
+        default: "#d8342e"
+      sponsorkliks:
+        description: "SponsorKliks-clubnummer (alleen cijfers, mag leeg)"
+        required: false
+      knbsb:
+        description: "KNBSB/FOYS-club-id voor de wedstrijden (mag leeg, kan later)"
+        required: false
+      domein:
+        description: "Eigen webadres van de app, bijv. app.pioniers.nl (mag leeg, kan later)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency: { group: clubapps, cancel-in-progress: false }
+
+jobs:
+  nieuwe-club:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: ImageMagick voor de iconen
+        run: command -v convert || (sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick)
+      - name: Club klaarzetten
+        env:
+          CODE: ${{ inputs.code }}
+          NAAM: ${{ inputs.naam }}
+          PLAATS: ${{ inputs.plaats }}
+          SITE: ${{ inputs.site }}
+          LOGO: ${{ inputs.logo }}
+          HOOFD: ${{ inputs.hoofdkleur }}
+          ACCENT: ${{ inputs.accentkleur }}
+          SK: ${{ inputs.sponsorkliks }}
+          KNBSB: ${{ inputs.knbsb }}
+          DOMEIN: ${{ inputs.domein }}
+        run: >
+          node scripts/nieuwe-club.mjs --code "$CODE" --naam "$NAAM" --plaats "$PLAATS" --site "$SITE" --logo "$LOGO"
+          --hoofdkleur "$HOOFD" --accentkleur "$ACCENT" --sponsorkliks "$SK" --knbsb "$KNBSB" --domein "$DOMEIN"
+      - name: App bouwen
+        run: node scripts/build.mjs
+      - name: Opslaan en online zetten
+        env:
+          CODE: ${{ inputs.code }}
+          NAAM: ${{ inputs.naam }}
+        run: |
+          CODE=$(echo "$CODE" | tr 'A-Z' 'a-z' | xargs)
+          git config user.name "clubapp-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Nieuwe club: $NAAM"
+          git push
+          OWNER=$(echo "$GITHUB_REPOSITORY_OWNER" | tr 'A-Z' 'a-z'); REPO=${GITHUB_REPOSITORY#*/}
+          {
+            echo "## $NAAM staat klaar"
+            echo "- App (over een paar minuten online): https://$OWNER.github.io/$REPO/$CODE/"
+            echo "- Koppeling voor de Google Sheet van de club: backend/$CODE/Code.gs (uitleg in backend/LEESMIJ.md)"
+            echo "- Daarna het webadres van die koppeling invullen met de knop **Club koppelen**."
+          } >> "$GITHUB_STEP_SUMMARY"

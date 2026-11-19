@@ -9,6 +9,7 @@
  *  - ruimt elke nacht aanmeldingen op die meer dan een maand na de activiteit zijn.
  */
 
+// CLUB-BEGIN (dit blok vult scripts/build.mjs per club in vanuit <club>/config.js; zie backend/<club>/Code.gs)
 const CLUB = {
   naam: "Uitsmijters '55",
   nieuwsFeed: "https://www.uitsmijters55.nl/index.php/component/content/category/nieuws?Itemid=101&format=feed&type=rss&limit=30",
@@ -18,6 +19,7 @@ const CLUB = {
   foysClub: "0b84a685-dbef-4a60-b965-49b2a7df7f6d",
   agenda: "e03cmdgh8rq19k1b24se3kn6ss@group.calendar.google.com" // Google Agenda "U55 Activiteiten" (Scripteigenschap AGENDA_ID gaat voor)
 };
+// CLUB-EINDE
 const BEWAARDAGEN = 31; // aanmeldingen worden zoveel dagen na de activiteit verwijderd
 
 const TABBLADEN = {
@@ -285,6 +287,7 @@ function opruimen() {
 
 // ---------------- Nieuws van de clubsite ----------------
 function haalNieuws() {
+  if (!CLUB.nieuwsFeed) return { ok: true, items: [] };
   const r = UrlFetchApp.fetch(CLUB.nieuwsFeed, { muteHttpExceptions: true });
   if (r.getResponseCode() !== 200) throw fout("bron");
   const doc = XmlService.parse(r.getContentText("UTF-8"));
@@ -310,17 +313,24 @@ function foys(pad) {
 }
 const lijst = j => Array.isArray(j) ? j : (j && j.items) || [];
 
+// true/false als FOYS het id van de vereniging meegeeft, anders null
+function eigenOrg(o) {
+  const id = o && (o.id || o.guid || o.organisationId);
+  return id ? String(id) === CLUB.foysClub : null;
+}
 function compacteWedstrijd(m) {
   return {
     id: m.id, d: String(m.date || "").slice(0, 10), t: String(m.startTime || "").slice(0, 5), s: m.status,
     h: (m.homeOrganisation && m.homeOrganisation.name) || "", ht: m.homeTeamName || "",
     a: (m.awayOrganisation && m.awayOrganisation.name) || "", at: m.awayTeamName || "",
+    eh: eigenOrg(m.homeOrganisation) !== null ? eigenOrg(m.homeOrganisation) : undefined, // speelt de club thuis?
     hs: m.homeScore, as: m.awayScore,
     c: String((m.competition && m.competition.name) || "").replace(/ - Reguliere competitie$/, ""), loc: m.accommodationName || ""
   };
 }
 
 function haalWedstrijden() {
+  if (!CLUB.foysClub) return { ok: true, bijgewerkt: new Date().toISOString(), programma: [], uitslagen: [], standen: {} };
   const vandaag = vandaagIso();
   const club = encodeURIComponent(CLUB.foysClub);
   const programma = lijst(foys("/matches?organisationId=" + club + "&startDate=" + vandaag + "&skipCount=0&maxResultCount=40&sorting=" + encodeURIComponent("date asc, startTime asc"))).map(compacteWedstrijd);

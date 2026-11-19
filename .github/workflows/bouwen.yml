@@ -1,0 +1,32 @@
+name: Apps bouwen
+
+# Maakt na elke wijziging de app van elke club opnieuw (scripts/build.mjs) en zet het resultaat terug in de repository.
+# GitHub Pages zet het daarna binnen een paar minuten online.
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", "*/config.js", "*/icons/**", "scripts/**", "backend/Code.gs", ".github/workflows/bouwen.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency: { group: clubapps, cancel-in-progress: false }
+
+jobs:
+  bouwen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Apps bouwen
+        run: node scripts/build.mjs
+      - name: Opslaan als er iets veranderd is
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then echo "Alles was al bijgewerkt"; exit 0; fi
+          git config user.name "clubapp-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Apps opnieuw gebouwd"
+          git push

@@ -1,10 +1,20 @@
 // Instellingen voor de clubapp van Uitsmijters '55.
-// Een andere club krijgt een eigen map (bijv. /clubnaam) met een eigen config.js; app.js en style.css blijven gelijk.
+// Elke club heeft een eigen map met een eigen config.js en logo. De rest (app.js, style.css, index.html, sw.js) maakt scripts/build.mjs.
 window.CLUB = {
   id: "u55",
   naam: "Uitsmijters '55",
+  kort: "U55", // korte naam onder het app-icoon
+  plaats: "Almelo",
   sub: "Honk- en softbalvereniging Almelo · sinds 1955",
   site: "https://www.uitsmijters55.nl",
+  domein: "app.uitsmijters55.nl", // eigen webadres van de app (leeg = alleen via de map)
+  logo: "icons/logo.jpg",
+  // Clubkleuren: hoofd = kopbalk en datumblokjes (donker), accent = knoppen en lijnen. Leeg = de U55-kleuren.
+  kleuren: {},
+
+  // Alleen voor de koppeling (backend/u55/Code.gs): nieuws van de clubsite en de Google Agenda van de club
+  nieuwsFeed: "https://www.uitsmijters55.nl/index.php/component/content/category/nieuws?Itemid=101&format=feed&type=rss&limit=30",
+  googleAgenda: "e03cmdgh8rq19k1b24se3kn6ss@group.calendar.google.com", // "U55 Activiteiten"
 
   // Webadres van de Google Apps Script-koppeling (zie backend/LEESMIJ.md). Leeg = alleen-lezen modus met voorbeeldgegevens.
   api: "https://script.google.com/macros/s/AKfycbzN7vykJNfGBSP6lJ8FC-aPZ3Ow3UGJVYE7OV1vmLawRTvvAuwnL3Q9V5mJPDddSBGvIQ/exec",
