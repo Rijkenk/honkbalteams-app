@@ -184,6 +184,24 @@ function sponsorBlok(groot) {
 }
 const geenKoppeling = () => !C.api ? '<p class="status">Aanmelden en het overzicht werken zodra de app gekoppeld is aan de opslag van de club.</p>' : "";
 
+// ---------- App installeren (alleen zichtbaar in de browser, niet als de app al op het beginscherm staat) ----------
+let installVraag = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installVraag = e; herteken("club"); });
+window.addEventListener("appinstalled", () => { installVraag = null; herteken("club"); });
+const alsApp = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+function installBlok() {
+  if (alsApp()) return "";
+  const ua = navigator.userAgent;
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const android = /Android/.test(ua);
+  const iosStappen = `<p><b>iPhone</b> (in Safari)</p><ol><li>Tik onderin op het deel-icoon (vierkantje met pijl omhoog).</li><li>Scrol omlaag en tik op <b>Zet op beginscherm</b>.</li><li>Tik op <b>Voeg toe</b>.</li></ol>`;
+  const androidStappen = `<p><b>Android</b> (in Chrome)</p><ol><li>Tik rechtsboven op de drie puntjes ⋮.</li><li>Tik op <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.</li><li>Bevestig met <b>Installeren</b>.</li></ol>`;
+  return `<article class="news install"><div class="kicker">Tip</div><h3>Zet de app op je telefoon</h3>
+    <p>Dan staat het U55-logo tussen je apps. Niets downloaden, en de app werkt meteen.</p>
+    ${installVraag ? '<div class="row"><button class="primary" id="installeren">App installeren</button></div>' : ""}
+    ${ios ? iosStappen : android ? androidStappen : iosStappen + androidStappen}</article>`;
+}
+
 const views = {
   agenda: () => {
     const lijst = activiteiten();
@@ -310,6 +328,7 @@ const views = {
   },
   club: () => `
     <h2>Club</h2>
+    ${installBlok()}
     ${sponsorBlok(false)}
     ${C.clubBlokken.map(g => `<section class="tilegroup"><h3>${esc(g.kop)}</h3><div class="tiles">${g.items.map(tegel).join("")}</div></section>`).join("")}
     <div class="tilefoot">Alle blokken openen de clubsite</div>
@@ -389,6 +408,7 @@ document.addEventListener("click", async e => {
   else if (t.dataset.dienstweg) afmelden("dienst", t.dataset.dienstweg, "helpen");
   else if (t.dataset.dienst) dienstFormulier(t);
   else if (t.id === "inloggen") show("ac");
+  else if (t.id === "installeren" && installVraag) { installVraag.prompt(); try { await installVraag.userChoice; } catch (err) {} installVraag = null; herteken("club"); }
   else if (t.id === "uitloggen") { beheercode = ""; beheer = null; wis("beheer"); document.querySelector('nav.tabs button[data-tab="ac"]').hidden = true; show("club"); toast("Uitgelogd"); }
   else if (t.dataset.actweg || t.dataset.taakweg || t.dataset.verzoekweg) {
     const [soort, id] = t.dataset.actweg ? ["a", t.dataset.actweg] : t.dataset.taakweg ? ["t", t.dataset.taakweg] : ["v", t.dataset.verzoekweg];
