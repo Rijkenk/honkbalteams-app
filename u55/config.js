@@ -7,7 +7,7 @@ window.CLUB = {
   site: "https://www.uitsmijters55.nl",
 
   // Webadres van de Google Apps Script-koppeling (zie backend/LEESMIJ.md). Leeg = alleen-lezen modus met voorbeeldgegevens.
-  api: "",
+  api: "https://script.google.com/macros/s/AKfycbzN7vykJNfGBSP6lJ8FC-aPZ3Ow3UGJVYE7OV1vmLawRTvvAuwnL3Q9V5mJPDddSBGvIQ/exec",
 
   // KNBSB/FOYS: openbare competitiegegevens (opgehaald via de koppeling hierboven)
   foys: { federationId: "d82c5610-66b2-4939-9897-8dac34becfc5", clubId: "0b84a685-dbef-4a60-b965-49b2a7df7f6d" },
