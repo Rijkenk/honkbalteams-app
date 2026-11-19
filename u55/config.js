@@ -29,7 +29,7 @@ window.CLUB = {
   agendaTitel: "Jaaragenda 2027, goedgekeurd door het bestuur",
   agendaDoorlopend: ["Hamburgers en hotdogs bij de thuiswedstrijden van Heren 1, samen met de vrijwilligers", "Pupil van de week bij de thuiswedstrijden (proef)"],
   agenda: [
-    { id: "nieuwjaar", datum: "2027-01-09", d: "9", m: "jan", titel: "Nieuwjaarsborrel met loterij", tekst: "Proosten op 2027 met loten, sjoelen, muziekbingo en ballen slaan.", wie: "Alle leden", tags: ["Of za 16 jan", "Kantine"], aanmelden: true },
+    { id: "nieuwjaar", datum: "2027-01-09", d: "9", m: "jan", titel: "Nieuwjaarsborrel met loterij", tekst: "Proosten op 2027 met loten, sjoelen en muziekbingo.", wie: "Alle leden", tags: ["Kantine"], aanmelden: true },
     { id: "valentijn", datum: "2027-02-13", d: "13", m: "feb", titel: "Valentijnsbingo", tekst: "Bingo met mooie prijzen van onze sponsors. Kaartverkoop vanaf half januari.", wie: "Alle leden", tags: ["Kantine"], kaarten: "" },
     { id: "pasen", datum: "2027-03-28", d: "28", m: "mrt", titel: "Paasontbijt", tekst: "Samen ontbijten op de club.", wie: "Alle leden", tags: ["Of ma 29 mrt"], aanmelden: true },
     { id: "opening", datum: "2027-04-11", d: "10-11", m: "apr", titel: "Openingsweekend", tekst: "Aftrap van seizoen 2027 met hamburgers en hotdogs.", wie: "Alle leden", tags: ["Za en zo"] },
