@@ -133,6 +133,7 @@ function uitAgenda(eventId) {
 //   #aanmelden            -> aanmeldknop in de app
 //   #kaarten https://...  -> knop "Kaarten kopen" met die link
 //   #voor Jeugd           -> doelgroep (standaard "Iedereen")
+//   #herhalen             -> een terugkerende afspraak wél tonen (standaard worden herhalingen overgeslagen)
 function haalAgenda() {
   const cal = clubAgenda();
   if (!cal) throw fout("agenda"); // onbekend of niet gedeeld met dit account
@@ -141,7 +142,10 @@ function haalAgenda() {
   const eind = new Date(start.getTime() + 400 * 864e5);
   const tz = "Europe/Amsterdam";
   const fmt = (d, f) => Utilities.formatDate(d, tz, f);
-  const items = cal.getEvents(start, eind).slice(0, 150).map(ev => {
+  const items = cal.getEvents(start, eind)
+    // Terugkerende afspraken (vaak oude jaarlijkse herhalingen) alleen tonen als er #herhalen in de beschrijving staat
+    .filter(ev => !ev.isRecurringEvent() || /#herhalen\b/i.test(String(ev.getDescription() || "")))
+    .slice(0, 150).map(ev => {
     const heleDag = ev.isAllDayEvent();
     const begin = heleDag ? ev.getAllDayStartDate() : ev.getStartTime();
     let eindD = heleDag ? new Date(ev.getAllDayEndDate().getTime() - 864e5) : ev.getEndTime();
@@ -151,7 +155,7 @@ function haalAgenda() {
     const kaarten = (tekstRuw.match(/#kaarten\s+(https:\/\/\S+)/i) || [])[1] || "";
     const voor = ((tekstRuw.match(/#voor\s+([^\n#]+)/i) || [])[1] || "").trim();
     const aanmelden = /#aanmelden\b/i.test(tekstRuw);
-    tekstRuw = tekstRuw.replace(/#kaarten\s+\S+/ig, "").replace(/#voor\s+[^\n#]+/ig, "").replace(/#aanmelden\b/ig, "").replace(/\s+/g, " ").trim();
+    tekstRuw = tekstRuw.replace(/#kaarten\s+\S+/ig, "").replace(/#voor\s+[^\n#]+/ig, "").replace(/#aanmelden\b/ig, "").replace(/#herhalen\b/ig, "").replace(/\s+/g, " ").trim();
     const tags = [];
     if (totDatum > datum) tags.push(fmt(begin, "d") + " t/m " + fmt(eindD, "d MMM").replace(".", ""));
     else if (!heleDag) tags.push(fmt(begin, "HH:mm") + "-" + fmt(eindD, "HH:mm"));

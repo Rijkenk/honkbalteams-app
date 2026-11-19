@@ -39,6 +39,7 @@ Nieuwe of gewijzigde afspraken staan binnen een kwartier in de app. In de beschr
 - `#aanmelden`: leden kunnen zich in de app aanmelden (alleen voornaam en aantal).
 - `#kaarten https://...`: knop "Kaarten kopen" met die link (bijvoorbeeld ClubCollect).
 - `#voor Jeugd`: voor wie de activiteit is (anders "Iedereen").
+- `#herhalen`: een terugkerende afspraak toch tonen. Zonder deze tag slaat de app herhalingen over (vaak oude jaarlijkse afspraken).
 
 **Andersom:** een activiteit die AC of bestuur in de app toevoegt (Overzicht), zet het script ook in de Google Agenda,
 als het Google-account van het script daar **Wijzigingen aanbrengen in afspraken** mag. Verwijder je hem in de app, dan verdwijnt hij ook uit de agenda.
