@@ -1,0 +1,40 @@
+name: Club koppelen
+
+# Zet het webadres van de Google Sheet-koppeling (Apps Script, eindigt op /exec) in de app van een club.
+# Daarna werken aanmelden, vrijwilligersdiensten, het nieuws en het Overzicht.
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: "Code van de club (de mapnaam, bijv. pioniers)"
+        required: true
+      api:
+        description: "URL van de web-app uit Apps Script (eindigt op /exec)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency: { group: clubapps, cancel-in-progress: false }
+
+jobs:
+  koppelen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Webadres invullen en app bouwen
+        env:
+          CODE: ${{ inputs.code }}
+          API: ${{ inputs.api }}
+        run: node scripts/koppel-club.mjs "$CODE" "$API" && node scripts/build.mjs
+      - name: Opslaan
+        env:
+          CODE: ${{ inputs.code }}
+        run: |
+          git config user.name "clubapp-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Koppeling ingesteld voor $CODE"
+          git push
