@@ -30,13 +30,13 @@ window.CLUB = {
   agendaDoorlopend: ["Hamburgers en hotdogs bij de thuiswedstrijden van Heren 1, samen met de vrijwilligers", "Pupil van de week bij de thuiswedstrijden (proef)"],
   agenda: [
     { id: "nieuwjaar", datum: "2027-01-09", d: "9", m: "jan", titel: "Nieuwjaarsborrel met loterij", tekst: "Proosten op 2027 met loten, sjoelen en muziekbingo.", wie: "Alle leden", tags: ["Kantine"], aanmelden: true },
-    { id: "valentijn", datum: "2027-02-13", d: "13", m: "feb", titel: "Valentijnsbingo", tekst: "Bingo met mooie prijzen van onze sponsors. Kaartverkoop vanaf half januari.", wie: "Alle leden", tags: ["Kantine"], kaarten: "" },
+    { id: "valentijn", datum: "2027-02-13", d: "13", m: "feb", titel: "Valentijnsbingo", tekst: "Bingo met mooie prijzen van onze sponsors. Kaartverkoop vanaf half januari.", wie: "Alle leden", tags: ["Kantine"], kaarten: "https://app.clubcollect.com/forms/nl/uitsmijters-55/aanmeldformulier-u55-bingo" },
     { id: "pasen", datum: "2027-03-28", d: "28", m: "mrt", titel: "Paasontbijt", tekst: "Samen ontbijten op de club.", wie: "Alle leden", tags: ["Of ma 29 mrt"], aanmelden: true },
     { id: "opening", datum: "2027-04-11", d: "10-11", m: "apr", titel: "Openingsweekend", tekst: "Aftrap van seizoen 2027 met hamburgers en hotdogs.", wie: "Alle leden", tags: ["Za en zo"] },
     { id: "jeugd", datum: "2027-06-20", d: "18-20", m: "jun", titel: "Jeugdweekend", tekst: "Kampeerweekend op de club met een kinderbingo.", wie: "Jeugd", tags: ["Vr t/m zo", "Vaderdagweekend"], aanmelden: true },
     { id: "toernooi", datum: "2027-07-04", d: "3-4", m: "jul", titel: "Toernooiweekend Heren 1", tekst: "Een weekend vol honkbal. Kom kijken en aanmoedigen!", wie: "Heren 1 en publiek", tags: ["Za en zo"] },
     { id: "driekamp", datum: "2027-09-18", d: "18", m: "sep", titel: "Driekamptoernooi", tekst: "Ouders tegen kids en oud-leden tegen Heren 1, met bbq en pubquiz.", wie: "Alle leden", tags: ["Zaterdag"], aanmelden: true },
-    { id: "halloween", datum: "2027-10-30", d: "30", m: "okt", titel: "Halloweenbingo", tekst: "Griezelen met bingo.", wie: "Alle leden", tags: ["Kantine"], kaarten: "" },
+    { id: "halloween", datum: "2027-10-30", d: "30", m: "okt", titel: "Halloweenbingo", tekst: "Griezelen met bingo.", wie: "Alle leden", tags: ["Kantine"], kaarten: "https://app.clubcollect.com/forms/nl/uitsmijters-55/aanmeldformulier-u55-bingo" },
     { id: "choco", datum: "2027-11-07", d: "nov", m: "2027", titel: "Chocoladeletteractie", tekst: "Steun de club: verkoop of bestel chocoladeletters.", wie: "Verkoop door leden", tags: ["Begin november"] },
     { id: "sint", datum: "2027-11-27", d: "27", m: "nov", titel: "Sinterklaasfeest", tekst: "Sinterklaas komt op bezoek bij de beeball en de pupillen.", wie: "Beeball en pupillen", tags: ["Of zo 28 nov"], aanmelden: true },
     { id: "kerstkaart", datum: "2027-12-05", d: "dec", m: "2027", titel: "Kerstkaart", tekst: "Met de uitnodiging voor de nieuwjaarsborrel van 2028.", wie: "Alle leden", tags: ["Begin december"] }

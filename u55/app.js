@@ -217,7 +217,7 @@ const views = {
           <h3>${esc(a.titel)}</h3><p>${esc(a.tekst)}</p>
           <div class="tags"><span class="tag wie">${esc(a.wie)}</span>${(a.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>
           ${a.kaarten !== undefined ? `<div class="row">${a.kaarten
-            ? `<a class="btn primary" href="${esc(a.kaarten)}" target="_blank" rel="noopener">Kaarten kopen via ClubCollect</a>`
+            ? `<a class="btn primary" href="${esc(a.kaarten)}" target="_blank" rel="noopener">Aanmelden via ClubCollect</a>`
             : `<button disabled>Kaarten via ClubCollect, link volgt</button>`}</div>` : a.aanmelden ? `<div class="row">${mijn.activiteiten[a.id]
             ? `<button class="done" data-afmelden="${esc(a.id)}">✓ Aangemeld (${esc(naamLabel(mijn.activiteiten[a.id]))})</button>`
             : `<button class="primary" data-aanmelden="${esc(a.id)}" ${C.api ? "" : "disabled"}>Aanmelden</button>`}</div>` : ""}
