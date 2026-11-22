@@ -1,4 +1,6 @@
-// Clubapp: één bestand met alle logica. Instellingen per club staan in config.js.
+// Gemaakt door scripts/build.mjs uit app/app.js (niet hier aanpassen)
+// Clubapp: één bestand met alle logica, gelijk voor alle clubs. Instellingen per club staan in <club>/config.js.
+// Pas dit bestand aan in app/app.js: scripts/build.mjs zet het in de map van elke club.
 "use strict";
 const C = window.CLUB;
 const PREFIX = C.id + "-";
@@ -79,15 +81,17 @@ function activiteiten() {
 }
 
 // ---------- Wedstrijden ----------
-const U = C.naam;
+const U = C.foysNaam || C.naam; // naam van de club bij de KNBSB
+// Speelt de club thuis? Nieuwere koppelingen geven dat mee (eh), anders op naam vergelijken
+const eigenThuis = m => m.eh !== undefined ? m.eh : m.h === U;
 function wedstrijdKaart(m) {
-  const thuis = m.h === U; const eigen = thuis ? m.ht : m.at; const tm = team(eigen);
+  const thuis = eigenThuis(m); const eigen = thuis ? m.ht : m.at; const tm = team(eigen);
   const dt = new Date(m.d + "T12:00:00");
   let res = "";
   if (m.s === "Cancelled") res = '<span class="badge res-x">Afgelast</span>';
   else if (m.hs !== null && m.hs !== undefined && m.s === "Final") { const wij = thuis ? m.hs : m.as, zij = thuis ? m.as : m.hs; res = wij > zij ? '<span class="badge res-w">Gewonnen</span>' : wij < zij ? '<span class="badge res-l">Verloren</span>' : '<span class="badge res-d">Gelijk</span>'; }
-  const regel = (club, tmn, score) => `<div class="line${club === U ? " u55" : ""}"><span>${esc(club)} <span class="small">${esc(tmn)}</span></span><span class="score">${score === null || score === undefined ? "" : esc(score)}</span></div>`;
-  return `<article class="match ${tm.klasse}"><div class="meta"><span style="display:flex;gap:6px;align-items:center"><span class="badge team">${esc(tm.naam)}</span>${DAGEN[dt.getDay()]} ${dt.getDate()} ${MAANDEN[dt.getMonth()]} · ${esc(m.t)}</span><span style="display:flex;gap:6px"><span class="badge ${thuis ? "thuis" : "uit"}">${thuis ? "Thuis" : "Uit"}</span>${res}</span></div>${regel(m.h, m.ht, m.hs)}${regel(m.a, m.at, m.as)}<div class="meta"><span>${esc(m.c)}</span><span>${esc(m.loc || "")}</span></div></article>`;
+  const regel = (eigen, club, tmn, score) => `<div class="line${eigen ? " u55" : ""}"><span>${esc(club)} <span class="small">${esc(tmn)}</span></span><span class="score">${score === null || score === undefined ? "" : esc(score)}</span></div>`;
+  return `<article class="match ${tm.klasse}"><div class="meta"><span style="display:flex;gap:6px;align-items:center"><span class="badge team">${esc(tm.naam)}</span>${DAGEN[dt.getDay()]} ${dt.getDate()} ${MAANDEN[dt.getMonth()]} · ${esc(m.t)}</span><span style="display:flex;gap:6px"><span class="badge ${thuis ? "thuis" : "uit"}">${thuis ? "Thuis" : "Uit"}</span>${res}</span></div>${regel(thuis, m.h, m.ht, m.hs)}${regel(!thuis, m.a, m.at, m.as)}<div class="meta"><span>${esc(m.c)}</span><span>${esc(m.loc || "")}</span></div></article>`;
 }
 
 function weekendBlok() {
@@ -103,7 +107,7 @@ function weekendBlok() {
   const rij = (m, thuis) => { const dt = new Date(m.d + "T12:00:00"); const tm = team(thuis ? m.ht : m.at); const tegen = thuis ? m.a : m.h;
     return `<div class="rij ${tm.klasse}"><div class="tijd">${esc(m.t)}<span>${DAGEN[dt.getDay()]} ${dt.getDate()} ${MAANDEN[dt.getMonth()]}</span></div>
       <div class="wie"><b><span class="badge team" style="margin-right:6px">${esc(tm.naam)}</span>${thuis ? "tegen" : "bij"} ${esc(tegen)}</b><small>${esc(m.c)}${m.loc ? " · " + esc(m.loc) : ""}</small></div></div>`; };
-  const thuis = wk.filter(m => m.h === U), uit = wk.filter(m => m.a === U);
+  const thuis = wk.filter(m => eigenThuis(m)), uit = wk.filter(m => !eigenThuis(m));
   return `<section class="weekend" aria-label="Thuiswedstrijden dit weekend">
     <div><h2 style="font-size:22px">Thuis dit weekend</h2><div class="sub">Zaterdag en zondag ${periode}</div></div>
     ${thuis.length ? thuis.map(m => rij(m, true)).join("") : '<div class="sub">Dit weekend geen thuiswedstrijden.</div>'}
@@ -170,7 +174,7 @@ const IC = {
   tas: '<path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
   ster: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'
 };
-const tegel = ([b, s, pad, ic, tk]) => `<a class="tile ${tk || ""}" href="${esc(C.site + pad)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[ic] || ""}</svg><b>${esc(b)}</b><span>${esc(s)}</span></a>`;
+const tegel = ([b, s, pad, ic, tk]) => `<a class="tile ${tk || ""}" href="${esc(/^https?:/.test(pad) ? pad : C.site + pad)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[ic] || ""}</svg><b>${esc(b)}</b><span>${esc(s)}</span></a>`;
 function sponsorBlok(groot) {
   const sk = C.sponsorkliks; if (!sk) return "";
   const md = vandaagIso().slice(5);
@@ -197,7 +201,7 @@ function installBlok() {
   const iosStappen = `<p><b>iPhone</b> (in Safari)</p><ol><li>Tik onderin op het deel-icoon (vierkantje met pijl omhoog).</li><li>Scrol omlaag en tik op <b>Zet op beginscherm</b>.</li><li>Tik op <b>Voeg toe</b>.</li></ol>`;
   const androidStappen = `<p><b>Android</b> (in Chrome)</p><ol><li>Tik rechtsboven op de drie puntjes ⋮.</li><li>Tik op <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.</li><li>Bevestig met <b>Installeren</b>.</li></ol>`;
   return `<article class="news install"><div class="kicker">Tip</div><h3>Zet de app op je telefoon</h3>
-    <p>Dan staat het U55-logo tussen je apps. Niets downloaden, en de app werkt meteen.</p>
+    <p>Dan staat het ${esc(C.kort ? C.kort + "-logo" : "clublogo")} tussen je apps. Niets downloaden, en de app werkt meteen.</p>
     ${installVraag ? '<div class="row"><button class="primary" id="installeren">App installeren</button></div>' : ""}
     ${ios ? iosStappen : android ? androidStappen : iosStappen + androidStappen}</article>`;
 }
@@ -228,8 +232,9 @@ const views = {
     <div id="form"></div>`;
   },
   wedstrijden: () => {
+    if (!C.foys) return `<h2>Wedstrijden</h2><p class="status">Het programma, de uitslagen en de standen komen hier zodra de app gekoppeld is aan de KNBSB.</p>`;
     if (!wedstrijden) return `<h2>Wedstrijden</h2><p class="status">${status.wedstrijden === "laden" ? "Wedstrijden laden..." : "De wedstrijden zijn nu niet bereikbaar. Probeer het later opnieuw."}</p>`;
-    const eigenTeam = m => m.h === U ? m.ht : m.at;
+    const eigenTeam = m => eigenThuis(m) ? m.ht : m.at;
     const filter = m => teamFilter === "alle" || eigenTeam(m) === teamFilter;
     const vandaag = vandaagIso();
     const komend = (wedstrijden.programma || []).filter(m => m.d >= vandaag && filter(m)).slice(0, 12);
@@ -529,8 +534,8 @@ async function laadWedstrijden() {
   if (!C.api) { status = { data: "fout", nieuws: "fout", wedstrijden: "fout" }; }
   show("agenda");
   if (C.api) { laadData(); laadMijn(); laadNieuws(); laadBeheer(true); }
-  laadWedstrijden();
+  if (C.foys) laadWedstrijden();
   // Ververs als de app weer op de voorgrond komt (bijv. vanaf het beginscherm geopend)
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && C.api) { laadData(); laadNieuws(); laadWedstrijden(); laadBeheer(true); } });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && C.api) { laadData(); laadNieuws(); if (C.foys) laadWedstrijden(); laadBeheer(true); } });
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
