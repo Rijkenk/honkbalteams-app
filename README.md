@@ -9,7 +9,7 @@ Clubapps (installeerbare webapps) voor honk- en softbalverenigingen. Eén app, e
 ## Een nieuwe club toevoegen (met één knop)
 
 1. Ga in GitHub naar **Actions > Nieuwe club > Run workflow**.
-2. Vul het formulier in: code (wordt het adres, bijv. `pioniers`), naam, plaats, website, link naar het logo, twee clubkleuren en eventueel het SponsorKliks-clubnummer, het KNBSB-club-id en een eigen webadres.
+2. Vul het formulier in: code (wordt het adres, bijv. `pioniers`), naam, plaats, website, link naar het logo, twee clubkleuren en eventueel het SponsorKliks-clubnummer, het KNBSB-club-id en het webadres op het domein van de club (bijv. `app.pioniers.nl`).
 3. Druk op de groene knop. Na een minuut staat de club klaar: map `<code>/` met `config.js` en iconen, de app zelf, en `backend/<code>/Code.gs` met de gegevens van de club al ingevuld. Een paar minuten later staat de app online.
 4. De club maakt een eigen Google Sheet met dat script (uitleg: [`backend/LEESMIJ.md`](backend/LEESMIJ.md)) en geeft het webadres (`.../exec`) door.
 5. **Actions > Club koppelen > Run workflow**: code en webadres invullen. Nu werken aanmelden, vrijwilligersdiensten, nieuws en het Overzicht met de eigen beheercode van die club.
@@ -31,11 +31,18 @@ Zoals bij de poolteam-app: de app is gedeeld, alleen de instellingen verschillen
 
 Agenda (aanmelden of ClubCollect-link), Wedstrijden (thuis/uit dit weekend, programma, uitslagen, standen per team), Helpen (vrijwilligersdiensten), Nieuws (van de clubsite), Club (links naar de site, privacy) en Overzicht (alleen bestuur/commissie, met beheercode: taken, aanmeldingen, activiteiten en verzoeken toevoegen).
 
-## Eigen webadres
+## Eigen webadres van de club
 
-GitHub Pages kan maar één eigen domein per repository bedienen; dat is nu `app.uitsmijters55.nl`. Andere clubs zijn daardoor voorlopig bereikbaar via `https://app.uitsmijters55.nl/<code>/`. Voor eigen adressen per club (zoals `<team>.poolteam.nl` bij de poolteams) is een eigen domein via Cloudflare nodig.
+Elke club krijgt de app op haar eigen domein, bijvoorbeeld `app.pioniers.nl`. Dat gaat via Cloudflare Pages (project `clubapps`), net als bij de poolteams:
 
-Voor U55: de beheerder van het domein heeft een **CNAME-record** `app` naar `rijkenk.github.io` gezet, het bestand `CNAME` bevat `app.uitsmijters55.nl` en `domein` in `u55/config.js` zorgt dat de startpagina doorstuurt naar `u55/`.
+1. Vul bij de knop **Nieuwe club** het veld *domein* in (of later `domein` in `<club>/config.js`).
+2. De Action zet de app op Cloudflare en koppelt het domein. In het overzicht van de Action staat welk DNS-record de club moet maken, meestal: **CNAME** `app` naar `clubapps.pages.dev`.
+3. De beheerder van de clubwebsite zet dat record. Binnen een uur werkt `https://app.pioniers.nl`, met een eigen beveiligd certificaat.
+
+Eenmalig nodig in deze repository (**Settings > Secrets and variables > Actions**): `CLOUDFLARE_API_TOKEN` (recht *Cloudflare Pages: Edit*) en `CLOUDFLARE_ACCOUNT_ID`. Zonder die secrets slaat de Action deze stap over.
+`scripts/cloudflare.mjs` stelt de site samen en koppelt de domeinen, `cloudflare/_worker.js` stuurt elk domein naar de map van de club.
+
+Uitsmijters '55 blijft op GitHub Pages: de beheerder van het domein heeft een CNAME `app` naar `rijkenk.github.io` gezet en het bestand `CNAME` bevat `app.uitsmijters55.nl`. Dat domein slaat Cloudflare over.
 
 ## Lokaal bouwen
 

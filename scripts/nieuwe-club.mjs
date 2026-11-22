@@ -17,7 +17,7 @@ const leeg = v => !v || !String(v).trim();
 // ---------- Controleren ----------
 const code = String(arg.code || "").trim().toLowerCase();
 if (!/^[a-z0-9][a-z0-9-]{1,30}$/.test(code)) stop('code moet uit kleine letters, cijfers of streepjes bestaan (bijv. "hcr" of "pioniers"), minimaal 2 tekens.');
-if (["app", "backend", "scripts", "node_modules", "u55"].includes(code)) stop(`de code "${code}" kan niet.`);
+if (["app", "backend", "scripts", "cloudflare", "dist", "node_modules", "u55", "www"].includes(code)) stop(`de code "${code}" kan niet.`);
 if (existsSync(`${code}/config.js`)) stop(`club "${code}" bestaat al. Pas ${code}/config.js aan in plaats van hem opnieuw te maken.`);
 const naam = String(arg.naam || "").trim();
 if (leeg(naam)) stop("geef de naam van de club op.");

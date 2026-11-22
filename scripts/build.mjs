@@ -64,7 +64,7 @@ function leesConfig(dir) {
   if (c.id !== dir) throw new Error(`${dir}/config.js: id moet "${dir}" zijn (nu "${c.id}")`);
   return c;
 }
-const clubs = readdirSync(".").filter(d => !d.startsWith(".") && !["app", "backend", "scripts", "node_modules"].includes(d)
+const clubs = readdirSync(".").filter(d => !d.startsWith(".") && !["app", "backend", "scripts", "cloudflare", "dist", "node_modules"].includes(d)
   && statSync(d).isDirectory() && existsSync(`${d}/config.js`)).sort().map(d => ({ dir: d, c: leesConfig(d) }));
 
 const tpl = readFileSync("app/index.html", "utf8");

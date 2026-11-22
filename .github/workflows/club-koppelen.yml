@@ -38,3 +38,8 @@ jobs:
           git add -A
           git commit -m "Koppeling ingesteld voor $CODE"
           git push
+      - name: Online zetten op Cloudflare (clubs met een eigen domein)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/cloudflare.mjs

@@ -35,7 +35,7 @@ on:
         description: "KNBSB/FOYS-club-id voor de wedstrijden (mag leeg, kan later)"
         required: false
       domein:
-        description: "Eigen webadres van de app, bijv. app.pioniers.nl (mag leeg, kan later)"
+        description: "Eigen webadres op het domein van de club, bijv. app.pioniers.nl (mag leeg, kan later)"
         required: false
 
 permissions:
@@ -83,7 +83,12 @@ jobs:
           OWNER=$(echo "$GITHUB_REPOSITORY_OWNER" | tr 'A-Z' 'a-z'); REPO=${GITHUB_REPOSITORY#*/}
           {
             echo "## $NAAM staat klaar"
-            echo "- App (over een paar minuten online): https://$OWNER.github.io/$REPO/$CODE/"
+            echo "- App (over een paar minuten online): https://$OWNER.github.io/$REPO/$CODE/ en, met een eigen domein, op dat adres zodra de club het DNS-record heeft gezet (zie hieronder)"
             echo "- Koppeling voor de Google Sheet van de club: backend/$CODE/Code.gs (uitleg in backend/LEESMIJ.md)"
             echo "- Daarna het webadres van die koppeling invullen met de knop **Club koppelen**."
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Online zetten op Cloudflare (clubs met een eigen domein)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/cloudflare.mjs

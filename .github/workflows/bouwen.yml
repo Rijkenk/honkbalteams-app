@@ -5,7 +5,7 @@ name: Apps bouwen
 on:
   push:
     branches: [main]
-    paths: ["app/**", "*/config.js", "*/icons/**", "scripts/**", "backend/Code.gs", ".github/workflows/bouwen.yml"]
+    paths: ["app/**", "*/config.js", "*/icons/**", "scripts/**", "backend/Code.gs", "cloudflare/**", ".github/workflows/bouwen.yml"]
   workflow_dispatch:
 
 permissions:
@@ -30,3 +30,8 @@ jobs:
           git add -A
           git commit -m "Apps opnieuw gebouwd"
           git push
+      - name: Online zetten op Cloudflare (clubs met een eigen domein)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/cloudflare.mjs
